@@ -11,14 +11,14 @@ enum Size {
     Small,
     Medium,
     Large,
-    ExtraLarge,
+    Original,
 }
 
 struct Images {
     small: Vec<u8>,
     medium: Vec<u8>,
     large: Vec<u8>,
-    extra_large: Vec<u8>,
+    original: Vec<u8>,
 }
 
 impl Images {
@@ -43,10 +43,6 @@ impl Images {
 
             encoder_quality += 25;
 
-            if encoder_quality > 75 {
-                encoder_quality = 90;
-            }
-
             handles.push(handle);
         }
 
@@ -55,7 +51,7 @@ impl Images {
             results.push(handle.join().unwrap());
         }
 
-        let (small, medium, large, extra_large) = (
+        let (small, medium, large, original) = (
             results.get(0).unwrap(),
             results.get(1).unwrap(),
             results.get(2).unwrap(),
@@ -69,7 +65,7 @@ impl Images {
             small: small.clone(),
             medium: medium.clone(),
             large: large.clone(),
-            extra_large: extra_large.clone(),
+            original: original.clone(),
         }))
     }
 
@@ -93,7 +89,7 @@ async fn image_request(size: web::Path<Size>, data: Data<&Images>) -> impl Respo
         Size::Small => data.small.clone(),
         Size::Medium => data.medium.clone(),
         Size::Large => data.large.clone(),
-        Size::ExtraLarge => data.extra_large.clone(),
+        Size::Original => data.original.clone(),
     };
 
     HttpResponse::Ok().content_type("image/jpeg").body(output)
@@ -107,10 +103,11 @@ async fn image_deliver() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
+    let localhost = "localhost";
+    let port = 8080;
 
     println!("Starting server...");
+    println!("Listening on: http://{}:{}", localhost, port);
 
     let images = Images::new();
 
@@ -120,7 +117,7 @@ async fn main() -> std::io::Result<()> {
             .service(image_request)
             .service(image_deliver)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((localhost, port))?
     .run()
     .await
 }
