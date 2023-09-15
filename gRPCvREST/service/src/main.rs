@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::web::Data;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use image::DynamicImage;
@@ -85,20 +86,19 @@ impl Images {
 
 #[get("/image/request/{size}")]
 async fn image_request(size: web::Path<Size>, data: Data<&Images>) -> impl Responder {
-    let output = match size.into_inner() {
-        Size::Small => data.small.clone(),
-        Size::Medium => data.medium.clone(),
-        Size::Large => data.large.clone(),
-        Size::Original => data.original.clone(),
-    };
-
-    HttpResponse::Ok().content_type("image/jpeg").body(output)
+    HttpResponse::Ok()
+        .content_type("image/jpeg")
+        .body(match size.into_inner() {
+            Size::Small => data.small.clone(),
+            Size::Medium => data.medium.clone(),
+            Size::Large => data.large.clone(),
+            Size::Original => data.original.clone(),
+        })
 }
 
 #[get("/image/deliver")]
 async fn image_deliver() -> impl Responder {
-    println!("Delivering image");
-    "sdfsd"
+    "Service is running and ready to deliver images"
 }
 
 #[actix_web::main]
@@ -112,7 +112,10 @@ async fn main() -> std::io::Result<()> {
     let images = Images::new();
 
     HttpServer::new(move || {
+        let cors = Cors::permissive();
+
         App::new()
+            .wrap(cors)
             .app_data(Data::new(images))
             .service(image_request)
             .service(image_deliver)
