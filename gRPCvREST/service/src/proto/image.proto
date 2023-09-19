@@ -1,0 +1,26 @@
+syntax = "proto3";
+package imagestorage;
+
+service ImageStorage {
+  // Get retrieves a image by its size.
+  rpc GetImage(ImageSize) returns (Image);
+
+  // Get retrieves a message.
+  rpc GetMessage(MessageIdentifier) returns (Message);
+}
+
+message ImageSize {
+  string size = 1;
+}
+
+message Image {
+  bytes data = 1;
+}
+
+message MessageIdentifier {
+  string id = 1;
+}
+
+message Message {
+  string text = 1;
+}

@@ -1,8 +1,9 @@
-async function perfMetrics(url) {
+async function perfMetricsREST(url) {
     let minTime = 10000000;
     let maxTime = 0;
     let totalTime = 0;
     let totalErrors = 0;
+    let originalSize = 0;
     const totalCalls = document.getElementById("totalCalls").value;
 
     const textStart = performance.now();
@@ -10,12 +11,18 @@ async function perfMetrics(url) {
     for (let i = 0; i < totalCalls; i++) {
         const start = performance.now();
         const response = await fetch(url);
+        const size = (await response.blob()).size/1000/1000;
 
-        if (response.status !== 200) {
+        if (originalSize === 0) {
+            originalSize = size;
+        }
+
+        if (response.status !== 200 || originalSize !== size) {
             totalErrors++;
         } else {
             const end = performance.now();
             totalTime += (end - start);
+
 
             if (end - start < minTime) {
                 minTime = end - start;
@@ -36,70 +43,100 @@ async function perfMetrics(url) {
         maxTime,
         averageTime,
         overallTime,
+        originalSize,
         totalErrors
     }
 }
 
-async function getText() {
-    const metrics = await perfMetrics("http://127.0.0.1:8080/image/deliver");
+async function perfMetricsGRPC() {
 
-    document.getElementById("minMaxText").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
-    document.getElementById("averageText").innerText = `Average Time: ${metrics.averageTime} ms`;
-    document.getElementById("overallText").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("errorsText").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
-async function getSmallImage() {
-    const metrics = await perfMetrics("http://127.0.0.1:8080/image/request/Small");
+async function getTextREST() {
+    const metrics = await perfMetricsREST("http://127.0.0.1:8080/message");
 
-    document.getElementById("minMaxSmallImage").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
-    document.getElementById("averageSmallImage").innerText = `Average Time: ${metrics.averageTime} ms`;
-    document.getElementById("overallSmallImage").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("errorsSmallImage").innerText = `Errors: ${metrics.totalErrors}`;
+    document.getElementById("minMaxTextREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageTextREST").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallTextREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeTextREST").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsTextREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
-async function getMediumImage() {
-    const metrics = await perfMetrics("http://127.0.0.1:8080/image/request/Medium");
+async function getSmallImageREST() {
+    const metrics = await perfMetricsREST("http://127.0.0.1:8080/image/request/Small");
 
-    document.getElementById("minMaxMediumImage").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
-    document.getElementById("averageMediumImage").innerText = `Average Time: ${metrics.averageTime} ms`;
-    document.getElementById("overallMediumImage").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("errorsMediumImage").innerText = `Errors: ${metrics.totalErrors}`;
+    document.getElementById("minMaxSmallImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageSmallImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallSmallImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeSmallImageREST").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsSmallImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
-async function getLargeImage() {
-    const metrics = await perfMetrics("http://127.0.0.1:8080/image/request/Large");
+async function getMediumImageREST() {
+    const metrics = await perfMetricsREST("http://127.0.0.1:8080/image/request/Medium");
 
-    document.getElementById("minMaxLargeImage").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
-    document.getElementById("averageLargeImage").innerText = `Average Time: ${metrics.averageTime} ms`;
-    document.getElementById("overallLargeImage").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("errorsLargeImage").innerText = `Errors: ${metrics.totalErrors}`;
+    document.getElementById("minMaxMediumImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageMediumImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallMediumImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeMediumImageREST").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsMediumImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
-async function getOriginalImage() {
-    const metrics = await perfMetrics("http://127.0.0.1:8080/image/request/Original");
+async function getLargeImageREST() {
+    const metrics = await perfMetricsREST("http://127.0.0.1:8080/image/request/Large");
 
-    document.getElementById("minMaxOriginalImage").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
-    document.getElementById("averageOriginalImage").innerText = `Average Time: ${metrics.averageTime} ms`;
-    document.getElementById("overallOriginalImage").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("errorsOriginalImage").innerText = `Errors: ${metrics.totalErrors}`;
+    document.getElementById("minMaxLargeImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageLargeImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallLargeImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeLargeImageREST").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsLargeImageREST").innerText = `Errors: ${metrics.totalErrors}`;
+}
+
+async function getOriginalImageREST() {
+    const metrics = await perfMetricsREST("http://127.0.0.1:8080/image/request/Original");
+
+    document.getElementById("minMaxOriginalImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageOriginalImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallOriginalImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeOriginalImageREST").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsOriginalImageREST").innerText = `Errors: ${metrics.totalErrors}`;
+}
+
+async function getTextGRPC() {
+
+}
+
+async function getSmallImageGRPC() {
+
+}
+
+async function getMediumImageGRPC() {
+
+}
+
+async function getLargeImageGRPC() {
+
+}
+
+async function getOriginalImageGRPC() {
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runTests").addEventListener("click", async () => {
         console.log("Starting tests...");
 
-        await getText(); // REST call to get Text
-        await getSmallImage(); // REST call to get Small Image
-        await getMediumImage(); // REST call to get Medium Image
-        await getLargeImage(); // REST call to get Large Image
-        await getOriginalImage(); // REST call to get Original Image
+        await getTextREST(); // REST call to get Text
+        await getSmallImageREST(); // REST call to get Small Image
+        await getMediumImageREST(); // REST call to get Medium Image
+        await getLargeImageREST(); // REST call to get Large Image
+        await getOriginalImageREST(); // REST call to get Original Image
 
-        // gRPC call to get Text
-        // gRPC call to get Small Image
-        // gRPC call to get Medium Image
-        // gRPC call to get Large Image
-        // gRPC call to get Original Image
+        await getTextGRPC(); // gRPC call to get Text
+        await getSmallImageGRPC(); // gRPC call to get Small Image
+        await getMediumImageGRPC(); // gRPC call to get Medium Image
+        await getLargeImageGRPC(); // gRPC call to get Large Image
+        await getOriginalImageGRPC(); // gRPC call to get Original Image
 
         console.log("...tests completed!");
     });

@@ -6,6 +6,11 @@ use jpeg_encoder::Encoder;
 use serde::Deserialize;
 use std::thread;
 use std::time::Instant;
+use tonic::transport::Server;
+use tonic::{Request, Response, Status};
+
+use imagestorage::image_storage_server::{ImageStorage, ImageStorageServer};
+use imagestorage::{Image, ImageSize, Message, MessageIdentifier};
 
 #[derive(Deserialize, Debug)]
 enum Size {
@@ -20,6 +25,34 @@ struct Images {
     medium: Vec<u8>,
     large: Vec<u8>,
     original: Vec<u8>,
+}
+
+pub mod imagestorage {
+    include!("imagestorage.rs");
+}
+
+pub struct ImageStorageService {
+    images: &'static Images,
+}
+
+#[tonic::async_trait]
+impl ImageStorage for ImageStorageService {
+    async fn get_image(&self, request: Request<ImageSize>) -> Result<Response<Image>, Status> {
+        println!("Got a request: {:?}", request.into_inner().size);
+        Ok(Response::new(Image {
+            data: self.images.medium.clone(),
+        }))
+    }
+
+    async fn get_message(
+        &self,
+        request: Request<MessageIdentifier>,
+    ) -> Result<Response<Message>, Status> {
+        println!("Got a request: {:?}", request);
+        Ok(Response::new(Message {
+            text: "Hello from the server!".into(),
+        }))
+    }
 }
 
 impl Images {
@@ -96,20 +129,34 @@ async fn image_request(size: web::Path<Size>, data: Data<&Images>) -> impl Respo
         })
 }
 
-#[get("/image/deliver")]
+#[get("/message")]
 async fn image_deliver() -> impl Responder {
     "Service is running and ready to deliver images"
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let localhost = "localhost";
-    let port = 8080;
+    let domain = "localhost";
+    let rest_port = 8080;
+    let grpc_port = 50051;
 
-    println!("Starting server...");
-    println!("Listening on: http://{}:{}", localhost, port);
+    println!("Starting servers...");
+    println!("Listening on: http://{}:{}", domain, rest_port);
+    println!("Listening on: http://{}:{}", domain, grpc_port);
 
     let images = Images::new();
+
+    tokio::spawn(async move {
+        Server::builder()
+            .add_service(ImageStorageServer::new(ImageStorageService { images }))
+            .serve(
+                ("[::1]:".to_owned() + grpc_port.to_string().as_str())
+                    .parse()
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+    });
 
     HttpServer::new(move || {
         let cors = Cors::permissive();
@@ -120,7 +167,7 @@ async fn main() -> std::io::Result<()> {
             .service(image_request)
             .service(image_deliver)
     })
-    .bind((localhost, port))?
+    .bind((domain, rest_port))?
     .run()
     .await
 }
