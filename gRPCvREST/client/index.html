@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>gRPCvREST</title>
-    <script src="index.js" defer></script>
+    <script src="./service/pkg/service.js"></script>
+    <script type="module" src="index.js" defer></script>
 </head>
 <body>
     <input type="text" id="totalCalls" placeholder="Number of Calls" value="1000">
@@ -13,35 +14,35 @@
 
     <div><b>Text</b></div>
     <div id="minMaxTextREST"></div>
-    <div id="averageTextREST"></div>
+    <div id="averageTextREST" style="color: green"></div>
     <div id="overallTextREST"></div>
     <div id="sizeTextREST"></div>
     <div id="errorsTextREST" style="color: red"></div>
 
     <div><b>Small Image</b></div>
     <div id="minMaxSmallImageREST"></div>
-    <div id="averageSmallImageREST"></div>
+    <div id="averageSmallImageREST" style="color: green"></div>
     <div id="overallSmallImageREST"></div>
     <div id="sizeSmallImageREST"></div>
     <div id="errorsSmallImageREST" style="color: red"></div>
 
     <div><b>Medium Image</b></div>
     <div id="minMaxMediumImageREST"></div>
-    <div id="averageMediumImageREST"></div>
+    <div id="averageMediumImageREST" style="color: green"></div>
     <div id="overallMediumImageREST"></div>
     <div id="sizeMediumImageREST"></div>
     <div id="errorsMediumImageREST" style="color: red"></div>
 
     <div><b>Large Image</b></div>
     <div id="minMaxLargeImageREST"></div>
-    <div id="averageLargeImageREST"></div>
+    <div id="averageLargeImageREST" style="color: green"></div>
     <div id="overallLargeImageREST"></div>
     <div id="sizeLargeImageREST"></div>
     <div id="errorsLargeImageREST" style="color: red"></div>
 
     <div><b>Original Image</b></div>
     <div id="minMaxOriginalImageREST"></div>
-    <div id="averageOriginalImageREST"></div>
+    <div id="averageOriginalImageREST" style="color: green"></div>
     <div id="overallOriginalImageREST"></div>
     <div id="sizeOriginalImageREST"></div>
     <div id="errorsOriginalImageREST" style="color: red"></div>

@@ -1,6 +1,6 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ImageSize {
+pub struct Size {
     #[prost(string, tag = "1")]
     pub size: ::prost::alloc::string::String,
 }
@@ -8,7 +8,7 @@ pub struct ImageSize {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Image {
     #[prost(bytes = "vec", tag = "1")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
+    pub image: ::prost::alloc::vec::Vec<u8>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -18,7 +18,7 @@ pub struct MessageIdentifier {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Message {
+pub struct Statement {
     #[prost(string, tag = "1")]
     pub text: ::prost::alloc::string::String,
 }
@@ -107,10 +107,10 @@ pub mod image_storage_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /// Get retrieves a image by its size.
+        /// Retrieves a image by its size.
         pub async fn get_image(
             &mut self,
-            request: impl tonic::IntoRequest<super::ImageSize>,
+            request: impl tonic::IntoRequest<super::Size>,
         ) -> std::result::Result<tonic::Response<super::Image>, tonic::Status> {
             self.inner
                 .ready()
@@ -130,11 +130,11 @@ pub mod image_storage_client {
                 .insert(GrpcMethod::new("imagestorage.ImageStorage", "GetImage"));
             self.inner.unary(req, path, codec).await
         }
-        /// Get retrieves a message.
+        /// Retrieves a message.
         pub async fn get_message(
             &mut self,
             request: impl tonic::IntoRequest<super::MessageIdentifier>,
-        ) -> std::result::Result<tonic::Response<super::Message>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::Statement>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -162,16 +162,16 @@ pub mod image_storage_server {
     /// Generated trait containing gRPC methods that should be implemented for use with ImageStorageServer.
     #[async_trait]
     pub trait ImageStorage: Send + Sync + 'static {
-        /// Get retrieves a image by its size.
+        /// Retrieves a image by its size.
         async fn get_image(
             &self,
-            request: tonic::Request<super::ImageSize>,
+            request: tonic::Request<super::Size>,
         ) -> std::result::Result<tonic::Response<super::Image>, tonic::Status>;
-        /// Get retrieves a message.
+        /// Retrieves a message.
         async fn get_message(
             &self,
             request: tonic::Request<super::MessageIdentifier>,
-        ) -> std::result::Result<tonic::Response<super::Message>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::Statement>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct ImageStorageServer<T: ImageStorage> {
@@ -255,7 +255,7 @@ pub mod image_storage_server {
                 "/imagestorage.ImageStorage/GetImage" => {
                     #[allow(non_camel_case_types)]
                     struct GetImageSvc<T: ImageStorage>(pub Arc<T>);
-                    impl<T: ImageStorage> tonic::server::UnaryService<super::ImageSize>
+                    impl<T: ImageStorage> tonic::server::UnaryService<super::Size>
                     for GetImageSvc<T> {
                         type Response = super::Image;
                         type Future = BoxFuture<
@@ -264,7 +264,7 @@ pub mod image_storage_server {
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::ImageSize>,
+                            request: tonic::Request<super::Size>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
@@ -303,7 +303,7 @@ pub mod image_storage_server {
                         T: ImageStorage,
                     > tonic::server::UnaryService<super::MessageIdentifier>
                     for GetMessageSvc<T> {
-                        type Response = super::Message;
+                        type Response = super::Statement;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

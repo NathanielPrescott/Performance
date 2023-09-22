@@ -1,3 +1,12 @@
+import init, { greet } from "./service/pkg/service.js";
+
+async function run() {
+    await init();
+    greet();
+}
+
+run();
+
 async function perfMetricsREST(url) {
     let minTime = 10000000;
     let maxTime = 0;

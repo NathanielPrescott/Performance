@@ -7,10 +7,10 @@ use serde::Deserialize;
 use std::thread;
 use std::time::Instant;
 use tonic::transport::Server;
-use tonic::{Request, Response, Status};
+use tonic::{IntoRequest, Request, Response, Status};
 
 use imagestorage::image_storage_server::{ImageStorage, ImageStorageServer};
-use imagestorage::{Image, ImageSize, Message, MessageIdentifier};
+use imagestorage::{Image, MessageIdentifier, Statement};
 
 #[derive(Deserialize, Debug)]
 enum Size {
@@ -37,20 +37,33 @@ pub struct ImageStorageService {
 
 #[tonic::async_trait]
 impl ImageStorage for ImageStorageService {
-    async fn get_image(&self, request: Request<ImageSize>) -> Result<Response<Image>, Status> {
-        println!("Got a request: {:?}", request.into_inner().size);
-        Ok(Response::new(Image {
-            data: self.images.medium.clone(),
-        }))
+    async fn get_image(
+        &self,
+        request: Request<imagestorage::Size>,
+    ) -> Result<Response<Image>, Status> {
+        let size = Images::from_string(request.into_inner().size.as_str())
+            .into_request()
+            .into_inner()
+            .map_err(|e| Status::invalid_argument(e))?;
+
+        let image = Image {
+            image: match size {
+                Size::Small => self.images.small.clone(),
+                Size::Medium => self.images.medium.clone(),
+                Size::Large => self.images.large.clone(),
+                Size::Original => self.images.original.clone(),
+            },
+        };
+
+        Ok(Response::new(image))
     }
 
     async fn get_message(
         &self,
-        request: Request<MessageIdentifier>,
-    ) -> Result<Response<Message>, Status> {
-        println!("Got a request: {:?}", request);
-        Ok(Response::new(Message {
-            text: "Hello from the server!".into(),
+        _request: Request<MessageIdentifier>,
+    ) -> Result<Response<Statement>, Status> {
+        Ok(Response::new(Statement {
+            text: "Service is running and ready to deliver images".to_string(),
         }))
     }
 }
@@ -114,6 +127,16 @@ impl Images {
                 jpeg_encoder::ColorType::Rgb,
             )
             .unwrap();
+    }
+
+    fn from_string(size: &str) -> Result<Size, &'static str> {
+        match size {
+            "Small" => Ok(Size::Small),
+            "Medium" => Ok(Size::Medium),
+            "Large" => Ok(Size::Large),
+            "Original" => Ok(Size::Original),
+            _ => Err("Invalid size name, please check spelling."),
+        }
     }
 }
 
