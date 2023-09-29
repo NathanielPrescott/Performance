@@ -1,13 +1,23 @@
-extern crate wasm_bindgen;
+use wasm_bindgen::prelude::wasm_bindgen;
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
+pub mod proto {
+    tonic::include_proto!("imagestorage");
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, imagestorage-wasm!");
+extern "C" {
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn get_message() -> String {
+    log("get_message, imagestorage-wasm!");
+    "get_message".to_string()
+}
+
+#[wasm_bindgen]
+pub fn get_image() -> String {
+    log("get_image, imagestorage-wasm!");
+    "get_image".to_string()
 }

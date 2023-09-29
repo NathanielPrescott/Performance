@@ -1,11 +1,22 @@
-import init, { greet } from "./service/pkg/service.js";
+import init, { get_message, get_image } from "./service/pkg/service.js";
 
 async function run() {
     await init();
-    greet();
 }
 
-run();
+run().then(r => console.log("WASM initialized!"));
+
+const Size = {
+    Small: Symbol("Small"),
+    Medium: Symbol("Medium"),
+    Large: Symbol("Large"),
+    Original: Symbol("Original")
+}
+
+const RequestType = {
+    Get_Message: Symbol("Get_Message"),
+    Get_Image: Symbol("Get_Image")
+}
 
 async function perfMetricsREST(url) {
     let minTime = 10000000;
@@ -57,10 +68,44 @@ async function perfMetricsREST(url) {
     }
 }
 
-async function perfMetricsGRPC() {
+async function perfMetricsGRPC(requestType, size) {
+    console.log("Starting gRPC call...");
+    let minTime = 10000000;
+    let maxTime = 0;
+    let totalTime = 0;
+    let totalErrors = 0;
+    let originalSize = 0;
+    const totalCalls = document.getElementById("totalCalls").value;
 
+    const textStart = performance.now();
+
+    for (let i = 0; i < totalCalls; i++) {
+        if (size) {
+            // console.log(requestType === RequestType.Get_Image);
+            // console.log("requestType: ", requestType);
+            // console.log(size === Size.Small);
+            // console.log("size: ", size);
+        } else {
+            const start = performance.now();
+            const response = get_message();
+            console.log(response);
+        }
+    }
+
+    const overallTime = performance.now() - textStart;
+    const averageTime = totalTime / totalCalls;
+
+    return {
+        minTime,
+        maxTime,
+        averageTime,
+        overallTime,
+        originalSize,
+        totalErrors
+    }
 }
 
+// REST calls
 async function getTextREST() {
     const metrics = await perfMetricsREST("http://127.0.0.1:8080/message");
 
@@ -111,24 +156,55 @@ async function getOriginalImageREST() {
     document.getElementById("errorsOriginalImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
+// gRPC calls
 async function getTextGRPC() {
+    const metrics = await perfMetricsGRPC(RequestType.Get_Message);
 
+    document.getElementById("minMaxTextGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageTextGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallTextGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeTextGRPC").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsTextGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
 async function getSmallImageGRPC() {
+    const metrics = await perfMetricsGRPC(RequestType.Get_Image, Size.Small);
 
+    document.getElementById("minMaxSmallImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageSmallImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallSmallImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeSmallImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsSmallImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
 async function getMediumImageGRPC() {
+    const metrics = await perfMetricsGRPC(RequestType.Get_Image, Size.Medium);
 
+    document.getElementById("minMaxMediumImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageMediumImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallMediumImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeMediumImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsMediumImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
 async function getLargeImageGRPC() {
+    const metrics = await perfMetricsGRPC(RequestType.Get_Image, Size.Large);
 
+    document.getElementById("minMaxLargeImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageLargeImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallLargeImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeLargeImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsLargeImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
 async function getOriginalImageGRPC() {
+    const metrics = await perfMetricsGRPC(RequestType.Get_Image, Size.Original);
 
+    document.getElementById("minMaxOriginalImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
+    document.getElementById("averageOriginalImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
+    document.getElementById("overallOriginalImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
+    document.getElementById("sizeOriginalImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
+    document.getElementById("errorsOriginalImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -136,16 +212,16 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Starting tests...");
 
         await getTextREST(); // REST call to get Text
-        await getSmallImageREST(); // REST call to get Small Image
-        await getMediumImageREST(); // REST call to get Medium Image
-        await getLargeImageREST(); // REST call to get Large Image
-        await getOriginalImageREST(); // REST call to get Original Image
+        // await getSmallImageREST(); // REST call to get Small Image
+        // await getMediumImageREST(); // REST call to get Medium Image
+        // await getLargeImageREST(); // REST call to get Large Image
+        // await getOriginalImageREST(); // REST call to get Original Image
 
         await getTextGRPC(); // gRPC call to get Text
-        await getSmallImageGRPC(); // gRPC call to get Small Image
-        await getMediumImageGRPC(); // gRPC call to get Medium Image
-        await getLargeImageGRPC(); // gRPC call to get Large Image
-        await getOriginalImageGRPC(); // gRPC call to get Original Image
+        // await getSmallImageGRPC(); // gRPC call to get Small Image
+        // await getMediumImageGRPC(); // gRPC call to get Medium Image
+        // await getLargeImageGRPC(); // gRPC call to get Large Image
+        // await getOriginalImageGRPC(); // gRPC call to get Original Image
 
         console.log("...tests completed!");
     });

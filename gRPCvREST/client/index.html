@@ -3,66 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>gRPCvREST</title>
-    <script src="./service/pkg/service.js"></script>
     <script type="module" src="index.js" defer></script>
 </head>
 <body>
-    <input type="text" id="totalCalls" placeholder="Number of Calls" value="1000">
-    <button id="runTests">Run Performance Test</button>
+    <div style="margin-bottom: 20px; width: 100%">
+        <input type="text" id="totalCalls" placeholder="Number of Calls" value="1000">
+        <button id="runTests">Run Performance Test</button>
+    </div>
+    <table>
+        <tr>
+            <th>REST</th>
+            <th>gRPC</th>
+        </tr>
+        <tr>
+            <td style="padding: 10px">
+                <div><b>Text</b></div>
+                <div id="minMaxTextREST"></div>
+                <div id="averageTextREST" style="color: green"></div>
+                <div id="overallTextREST"></div>
+                <div id="sizeTextREST"></div>
+                <div id="errorsTextREST" style="color: red"></div>
 
-    <h3><u>REST</u></h3>
+                <div><b>Small Image</b></div>
+                <div id="minMaxSmallImageREST"></div>
+                <div id="averageSmallImageREST" style="color: green"></div>
+                <div id="overallSmallImageREST"></div>
+                <div id="sizeSmallImageREST"></div>
+                <div id="errorsSmallImageREST" style="color: red"></div>
 
-    <div><b>Text</b></div>
-    <div id="minMaxTextREST"></div>
-    <div id="averageTextREST" style="color: green"></div>
-    <div id="overallTextREST"></div>
-    <div id="sizeTextREST"></div>
-    <div id="errorsTextREST" style="color: red"></div>
+                <div><b>Medium Image</b></div>
+                <div id="minMaxMediumImageREST"></div>
+                <div id="averageMediumImageREST" style="color: green"></div>
+                <div id="overallMediumImageREST"></div>
+                <div id="sizeMediumImageREST"></div>
+                <div id="errorsMediumImageREST" style="color: red"></div>
 
-    <div><b>Small Image</b></div>
-    <div id="minMaxSmallImageREST"></div>
-    <div id="averageSmallImageREST" style="color: green"></div>
-    <div id="overallSmallImageREST"></div>
-    <div id="sizeSmallImageREST"></div>
-    <div id="errorsSmallImageREST" style="color: red"></div>
+                <div><b>Large Image</b></div>
+                <div id="minMaxLargeImageREST"></div>
+                <div id="averageLargeImageREST" style="color: green"></div>
+                <div id="overallLargeImageREST"></div>
+                <div id="sizeLargeImageREST"></div>
+                <div id="errorsLargeImageREST" style="color: red"></div>
 
-    <div><b>Medium Image</b></div>
-    <div id="minMaxMediumImageREST"></div>
-    <div id="averageMediumImageREST" style="color: green"></div>
-    <div id="overallMediumImageREST"></div>
-    <div id="sizeMediumImageREST"></div>
-    <div id="errorsMediumImageREST" style="color: red"></div>
+                <div><b>Original Image</b></div>
+                <div id="minMaxOriginalImageREST"></div>
+                <div id="averageOriginalImageREST" style="color: green"></div>
+                <div id="overallOriginalImageREST"></div>
+                <div id="sizeOriginalImageREST"></div>
+                <div id="errorsOriginalImageREST" style="color: red"></div>
+            </td>
+            <td style="padding: 10px">
+                <div><b>Text</b></div>
+                <div id="minMaxTextGRPC"></div>
+                <div id="averageTextGRPC" style="color: green"></div>
+                <div id="overallTextGRPC"></div>
+                <div id="sizeTextGRPC"></div>
+                <div id="errorsTextGRPC" style="color: red"></div>
 
-    <div><b>Large Image</b></div>
-    <div id="minMaxLargeImageREST"></div>
-    <div id="averageLargeImageREST" style="color: green"></div>
-    <div id="overallLargeImageREST"></div>
-    <div id="sizeLargeImageREST"></div>
-    <div id="errorsLargeImageREST" style="color: red"></div>
+                <div><b>Small Image</b></div>
+                <div id="minMaxSmallImageGRPC"></div>
+                <div id="averageSmallImageGRPC" style="color: green"></div>
+                <div id="overallSmallImageGRPC"></div>
+                <div id="sizeSmallImageGRPC"></div>
+                <div id="errorsSmallImageGRPC" style="color: red"></div>
 
-    <div><b>Original Image</b></div>
-    <div id="minMaxOriginalImageREST"></div>
-    <div id="averageOriginalImageREST" style="color: green"></div>
-    <div id="overallOriginalImageREST"></div>
-    <div id="sizeOriginalImageREST"></div>
-    <div id="errorsOriginalImageREST" style="color: red"></div>
+                <div><b>Medium Image</b></div>
+                <div id="minMaxMediumImageGRPC"></div>
+                <div id="averageMediumImageGRPC" style="color: green"></div>
+                <div id="overallMediumImageGRPC"></div>
+                <div id="sizeMediumImageGRPC"></div>
+                <div id="errorsMediumImageGRPC" style="color: red"></div>
 
-    <h3><u>gRPC</u></h3>
+                <div><b>Large Image</b></div>
+                <div id="minMaxLargeImageGRPC"></div>
+                <div id="averageLargeImageGRPC" style="color: green"></div>
+                <div id="overallLargeImageGRPC"></div>
+                <div id="sizeLargeImageGRPC"></div>
+                <div id="errorsLargeImageGRPC" style="color: red"></div>
 
-    <div><b>Text</b></div>
-
-
-    <div><b>Small Image</b></div>
-
-
-    <div><b>Medium Image</b></div>
-
-
-    <div><b>Large Image</b></div>
-
-
-    <div><b>Original Image</b></div>
-
-
+                <div><b>Original Image</b></div>
+                <div id="minMaxOriginalImageGRPC"></div>
+                <div id="averageOriginalImageGRPC" style="color: green"></div>
+                <div id="overallOriginalImageGRPC"></div>
+                <div id="sizeOriginalImageGRPC"></div>
+                <div id="errorsOriginalImageGRPC" style="color: red"></div>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

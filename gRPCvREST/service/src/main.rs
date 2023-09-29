@@ -12,6 +12,8 @@ use tonic::{IntoRequest, Request, Response, Status};
 use imagestorage::image_storage_server::{ImageStorage, ImageStorageServer};
 use imagestorage::{Image, MessageIdentifier, Statement};
 
+mod imagestorage;
+
 #[derive(Deserialize, Debug)]
 enum Size {
     Small,
@@ -25,10 +27,6 @@ struct Images {
     medium: Vec<u8>,
     large: Vec<u8>,
     original: Vec<u8>,
-}
-
-pub mod imagestorage {
-    include!("imagestorage.rs");
 }
 
 pub struct ImageStorageService {
