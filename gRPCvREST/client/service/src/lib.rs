@@ -1,4 +1,4 @@
-use crate::imagestorage::{Image, MessageIdentifier};
+use crate::imagestorage::{MessageIdentifier, Size};
 use imagestorage::image_storage_client::ImageStorageClient;
 use prost::Message;
 use tonic_web_wasm_client::Client;
@@ -20,7 +20,7 @@ pub struct MessageResponse {
 
 #[wasm_bindgen]
 pub struct ImageResponse {
-    image: Image,
+    image: Vec<u8>,
     size: u32,
 }
 
@@ -34,6 +34,24 @@ impl MessageResponse {
     #[wasm_bindgen(getter)]
     pub fn text(&self) -> String {
         self.text.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn size(&self) -> u32 {
+        self.size
+    }
+}
+
+#[wasm_bindgen]
+impl ImageResponse {
+    #[wasm_bindgen(constructor)]
+    pub fn new(image: Vec<u8>, size: u32) -> ImageResponse {
+        ImageResponse { image, size }
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn image(&self) -> Vec<u8> {
+        self.image.clone()
     }
 
     #[wasm_bindgen(getter)]
@@ -59,7 +77,7 @@ pub async fn get_message() -> MessageResponse {
     let statement = &response.unwrap().into_inner().clone();
     let mut buf = Vec::new();
     statement.clone().encode(&mut buf).unwrap();
-    let size_in_bits = buf.len() * 8;
+    let size_in_bits = buf.len();
 
     MessageResponse {
         text: statement.clone().text,
@@ -68,7 +86,28 @@ pub async fn get_message() -> MessageResponse {
 }
 
 #[wasm_bindgen]
-pub fn get_image() -> String {
-    log("get_image, imagestorage-wasm!");
-    "get_image".to_string()
+pub async fn get_image(image_size: String) -> ImageResponse {
+    let mut client = build_client();
+    let request = Size {
+        size: image_size.clone(),
+    };
+
+    log(&format!("Requesting image of size: {}", image_size.clone()));
+
+    let response = client.get_image(request).await;
+
+    log(&format!(
+        "Received image of size: {}",
+        response.iter().clone().len()
+    ));
+
+    let statement = &response.unwrap().into_inner().clone();
+    let mut buf = Vec::new();
+    statement.clone().encode(&mut buf).unwrap();
+    let size_in_bits = buf.len();
+
+    ImageResponse {
+        image: statement.clone().image,
+        size: size_in_bits as u32,
+    }
 }

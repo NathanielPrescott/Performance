@@ -39,8 +39,6 @@ impl ImageStorage for ImageStorageService {
         &self,
         request: Request<imagestorage::Size>,
     ) -> Result<Response<Image>, Status> {
-        println!("Service get_image triggered.");
-
         let size = Images::from_string(request.into_inner().size.as_str())
             .into_request()
             .into_inner()
