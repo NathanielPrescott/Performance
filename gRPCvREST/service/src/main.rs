@@ -39,6 +39,8 @@ impl ImageStorage for ImageStorageService {
         &self,
         request: Request<imagestorage::Size>,
     ) -> Result<Response<Image>, Status> {
+        println!("Service get_image triggered.");
+
         let size = Images::from_string(request.into_inner().size.as_str())
             .into_request()
             .into_inner()
@@ -169,7 +171,10 @@ async fn main() -> std::io::Result<()> {
 
     tokio::spawn(async move {
         Server::builder()
-            .add_service(ImageStorageServer::new(ImageStorageService { images }))
+            .accept_http1(true)
+            .add_service(tonic_web::enable(ImageStorageServer::new(
+                ImageStorageService { images },
+            )))
             .serve(
                 ("[::1]:".to_owned() + grpc_port.to_string().as_str())
                     .parse()

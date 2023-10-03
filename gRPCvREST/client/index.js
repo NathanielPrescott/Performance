@@ -69,7 +69,6 @@ async function perfMetricsREST(url) {
 }
 
 async function perfMetricsGRPC(requestType, size) {
-    console.log("Starting gRPC call...");
     let minTime = 10000000;
     let maxTime = 0;
     let totalTime = 0;
@@ -80,15 +79,28 @@ async function perfMetricsGRPC(requestType, size) {
     const textStart = performance.now();
 
     for (let i = 0; i < totalCalls; i++) {
-        if (size) {
-            // console.log(requestType === RequestType.Get_Image);
-            // console.log("requestType: ", requestType);
-            // console.log(size === Size.Small);
-            // console.log("size: ", size);
+        const start = performance.now();
+
+        const response = size ? await get_image() : await get_message();
+        const responseSize = response.size / 1000 / 1000;
+
+        if (originalSize === 0) {
+            originalSize = responseSize;
+        }
+
+        if (response.text !== "Service is running and ready to deliver images") {
+            totalErrors++;
         } else {
-            const start = performance.now();
-            const response = get_message();
-            console.log(response);
+            const end = performance.now();
+            totalTime += (end - start);
+
+            if (end - start < minTime) {
+                minTime = end - start;
+            }
+
+            if (end - start > maxTime) {
+                maxTime = end - start;
+            }
         }
     }
 
