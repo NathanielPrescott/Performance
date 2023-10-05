@@ -22,6 +22,7 @@ enum Size {
     Original,
 }
 
+#[derive(Deserialize, Debug)]
 struct Images {
     small: Vec<u8>,
     medium: Vec<u8>,
@@ -81,7 +82,7 @@ impl Images {
             let image = image.clone();
 
             let handle = thread::spawn(move || {
-                println!("Encoding image {:?}...", &mut size);
+                println!("Encoding image quality %{:?}...", &mut encoder_quality);
                 Self::image_encode(image, &mut size, encoder_quality);
                 size
             });

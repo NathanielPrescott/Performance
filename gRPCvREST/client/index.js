@@ -1,4 +1,8 @@
-import init, { get_message, get_image } from "./service/pkg/service.js";
+window.current_time = function () {
+    return performance.now();
+}
+
+import init, {get_message, get_image} from "./service/pkg/service.js";
 
 async function run() {
     await init();
@@ -23,7 +27,6 @@ async function perfMetricsREST(url) {
     let maxTime = 0;
     let totalTime = 0;
     let totalErrors = 0;
-    let originalSize = 0;
     const totalCalls = document.getElementById("totalCalls").value;
 
     const textStart = performance.now();
@@ -33,13 +36,7 @@ async function perfMetricsREST(url) {
         const response = await fetch(url);
         const end = performance.now();
 
-        const size = (await response.blob()).size/1000/1000;
-
-        if (originalSize === 0) {
-            originalSize = size;
-        }
-
-        if (response.status !== 200 || originalSize !== size) {
+        if (response.status !== 200) {
             totalErrors++;
         } else {
             totalTime += (end - start);
@@ -62,7 +59,6 @@ async function perfMetricsREST(url) {
         maxTime,
         averageTime,
         overallTime,
-        originalSize,
         totalErrors
     }
 }
@@ -72,7 +68,6 @@ async function perfMetricsGRPC(size) {
     let maxTime = 0;
     let totalTime = 0;
     let totalErrors = 0;
-    let originalSize = 0;
     const totalCalls = document.getElementById("totalCalls").value;
 
     const textStart = performance.now();
@@ -82,13 +77,10 @@ async function perfMetricsGRPC(size) {
         const response = size ? await get_image(size.description) : await get_message();
         const end = performance.now();
 
-        const responseSize = response.size / 1000 / 1000;
+        console.log("Actual time: " + (end - start));
+        console.log(response);
 
-        if (originalSize === 0) {
-            originalSize = responseSize;
-        }
-
-        if (!(response.text || response.image) || originalSize !== responseSize) {
+        if (!response) {
             totalErrors++;
         } else {
             totalTime += (end - start);
@@ -111,7 +103,6 @@ async function perfMetricsGRPC(size) {
         maxTime,
         averageTime,
         overallTime,
-        originalSize,
         totalErrors
     }
 }
@@ -123,7 +114,6 @@ async function getTextREST() {
     document.getElementById("minMaxTextREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageTextREST").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallTextREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeTextREST").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsTextREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -133,7 +123,6 @@ async function getSmallImageREST() {
     document.getElementById("minMaxSmallImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageSmallImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallSmallImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeSmallImageREST").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsSmallImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -143,7 +132,6 @@ async function getMediumImageREST() {
     document.getElementById("minMaxMediumImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageMediumImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallMediumImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeMediumImageREST").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsMediumImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -153,7 +141,6 @@ async function getLargeImageREST() {
     document.getElementById("minMaxLargeImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageLargeImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallLargeImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeLargeImageREST").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsLargeImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -163,7 +150,6 @@ async function getOriginalImageREST() {
     document.getElementById("minMaxOriginalImageREST").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageOriginalImageREST").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallOriginalImageREST").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeOriginalImageREST").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsOriginalImageREST").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -174,7 +160,6 @@ async function getTextGRPC() {
     document.getElementById("minMaxTextGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageTextGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallTextGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeTextGRPC").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsTextGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -184,7 +169,6 @@ async function getSmallImageGRPC() {
     document.getElementById("minMaxSmallImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageSmallImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallSmallImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeSmallImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsSmallImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -194,7 +178,6 @@ async function getMediumImageGRPC() {
     document.getElementById("minMaxMediumImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageMediumImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallMediumImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeMediumImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsMediumImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -204,7 +187,6 @@ async function getLargeImageGRPC() {
     document.getElementById("minMaxLargeImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageLargeImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallLargeImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeLargeImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsLargeImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -214,7 +196,6 @@ async function getOriginalImageGRPC() {
     document.getElementById("minMaxOriginalImageGRPC").innerText = `Min Time: ${metrics.minTime} ms | Max Time: ${metrics.maxTime} ms`;
     document.getElementById("averageOriginalImageGRPC").innerText = `Average Time: ${metrics.averageTime} ms`;
     document.getElementById("overallOriginalImageGRPC").innerText = `Overall Time: ${metrics.overallTime} ms`;
-    document.getElementById("sizeOriginalImageGRPC").innerText = `Size: ${metrics.originalSize} MB`;
     document.getElementById("errorsOriginalImageGRPC").innerText = `Errors: ${metrics.totalErrors}`;
 }
 
@@ -232,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await getSmallImageGRPC(); // gRPC call to get Small Image
         await getMediumImageGRPC(); // gRPC call to get Medium Image
         await getLargeImageGRPC(); // gRPC call to get Large Image
-        await getOriginalImageGRPC(); // gRPC call to get Original Image
+        // await getOriginalImageGRPC(); // gRPC call to get Original Image
 
         console.log("...tests completed!");
     });

@@ -1,6 +1,5 @@
 use crate::imagestorage::{MessageIdentifier, Size};
 use imagestorage::image_storage_client::ImageStorageClient;
-use prost::Message;
 use tonic_web_wasm_client::Client;
 use wasm_bindgen::prelude::*;
 
@@ -10,53 +9,43 @@ mod imagestorage;
 extern "C" {
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = window, js_name = current_time)]
+    fn current_time() -> f64;
 }
 
 #[wasm_bindgen]
 pub struct MessageResponse {
     text: String,
-    size: u32,
 }
 
 #[wasm_bindgen]
 pub struct ImageResponse {
-    image: Vec<u8>,
-    size: u32,
+    image: js_sys::Uint8Array,
 }
 
 #[wasm_bindgen]
 impl MessageResponse {
     #[wasm_bindgen(constructor)]
-    pub fn new(text: String, size: u32) -> MessageResponse {
-        MessageResponse { text, size }
+    pub fn new(text: String) -> MessageResponse {
+        MessageResponse { text }
     }
-
     #[wasm_bindgen(getter)]
     pub fn text(&self) -> String {
         self.text.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn size(&self) -> u32 {
-        self.size
     }
 }
 
 #[wasm_bindgen]
 impl ImageResponse {
     #[wasm_bindgen(constructor)]
-    pub fn new(image: Vec<u8>, size: u32) -> ImageResponse {
-        ImageResponse { image, size }
+    pub fn new(image: js_sys::Uint8Array) -> ImageResponse {
+        ImageResponse { image }
     }
 
     #[wasm_bindgen(getter)]
-    pub fn image(&self) -> Vec<u8> {
+    pub fn image(&self) -> js_sys::Uint8Array {
         self.image.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn size(&self) -> u32 {
-        self.size
     }
 }
 
@@ -68,21 +57,15 @@ fn build_client() -> ImageStorageClient<Client> {
 }
 
 #[wasm_bindgen]
-pub async fn get_message() -> MessageResponse {
+pub async fn get_message() -> String {
     let mut client = build_client();
     let request = MessageIdentifier { id: "".into() };
 
+    let start = current_time();
     let response = client.get_message(request).await;
+    log(&format!("Message time: {}", current_time() - start));
 
-    let statement = &response.unwrap().into_inner().clone();
-    let mut buf = Vec::new();
-    statement.clone().encode(&mut buf).unwrap();
-    let size_in_bits = buf.len();
-
-    MessageResponse {
-        text: statement.clone().text,
-        size: size_in_bits as u32,
-    }
+    response.unwrap().into_inner().text
 }
 
 #[wasm_bindgen]
@@ -92,22 +75,15 @@ pub async fn get_image(image_size: String) -> ImageResponse {
         size: image_size.clone(),
     };
 
-    log(&format!("Requesting image of size: {}", image_size.clone()));
-
+    let start = current_time();
     let response = client.get_image(request).await;
-
     log(&format!(
-        "Received image of size: {}",
-        response.iter().clone().len()
+        "{} Image called in: {}ms",
+        image_size,
+        current_time() - start
     ));
 
-    let statement = &response.unwrap().into_inner().clone();
-    let mut buf = Vec::new();
-    statement.clone().encode(&mut buf).unwrap();
-    let size_in_bits = buf.len();
-
     ImageResponse {
-        image: statement.clone().image,
-        size: size_in_bits as u32,
+        image: js_sys::Uint8Array::from(&response.unwrap().into_inner().image[..]),
     }
 }
