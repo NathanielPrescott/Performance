@@ -1,0 +1,1 @@
+This sub-project is built for testing the gRPCvREST/service sub-projects gRPC calls.  This is meant for debugging these calls without the having WebAssembly interfere.

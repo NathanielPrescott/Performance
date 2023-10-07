@@ -3,7 +3,7 @@ use actix_web::web::Data;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use image::DynamicImage;
 use jpeg_encoder::Encoder;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::thread;
 use std::time::Instant;
 use tonic::transport::Server;
@@ -14,7 +14,7 @@ use imagestorage::{Image, MessageIdentifier, Statement};
 
 mod imagestorage;
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 enum Size {
     Small,
     Medium,
@@ -22,7 +22,7 @@ enum Size {
     Original,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 struct Images {
     small: Vec<u8>,
     medium: Vec<u8>,
