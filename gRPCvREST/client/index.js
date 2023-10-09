@@ -77,9 +77,6 @@ async function perfMetricsGRPC(size) {
         const response = size ? await get_image(size.description) : await get_message();
         const end = performance.now();
 
-        console.log("Actual time: " + (end - start));
-        console.log(response);
-
         if (!response) {
             totalErrors++;
         } else {

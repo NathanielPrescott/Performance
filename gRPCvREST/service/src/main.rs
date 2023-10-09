@@ -4,6 +4,7 @@ use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use image::DynamicImage;
 use jpeg_encoder::Encoder;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use std::thread;
 use std::time::Instant;
 use tonic::transport::Server;
@@ -30,6 +31,7 @@ struct Images {
     original: Vec<u8>,
 }
 
+#[derive(Serialize, Debug)]
 pub struct ImageStorageService {
     images: &'static Images,
 }
@@ -45,16 +47,14 @@ impl ImageStorage for ImageStorageService {
             .into_inner()
             .map_err(|e| Status::invalid_argument(e))?;
 
-        let image = Image {
+        Ok(Response::new(Image {
             image: match size {
                 Size::Small => self.images.small.clone(),
                 Size::Medium => self.images.medium.clone(),
                 Size::Large => self.images.large.clone(),
                 Size::Original => self.images.original.clone(),
             },
-        };
-
-        Ok(Response::new(image))
+        }))
     }
 
     async fn get_message(
@@ -169,16 +169,13 @@ async fn main() -> std::io::Result<()> {
     let images = Images::new();
 
     tokio::spawn(async move {
+        let service = ImageStorageServer::new(ImageStorageService { images });
+        let address = "[::1]:".to_owned() + grpc_port.to_string().as_str();
+
         Server::builder()
             .accept_http1(true)
-            .add_service(tonic_web::enable(ImageStorageServer::new(
-                ImageStorageService { images },
-            )))
-            .serve(
-                ("[::1]:".to_owned() + grpc_port.to_string().as_str())
-                    .parse()
-                    .unwrap(),
-            )
+            .add_service(tonic_web::enable(service))
+            .serve(address.parse().unwrap())
             .await
             .unwrap();
     });
