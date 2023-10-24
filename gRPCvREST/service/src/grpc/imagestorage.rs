@@ -63,10 +63,7 @@ pub mod image_storage_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -122,17 +119,10 @@ pub mod image_storage_server {
                 "/imagestorage.ImageStorage/GetImage" => {
                     #[allow(non_camel_case_types)]
                     struct GetImageSvc<T: ImageStorage>(pub Arc<T>);
-                    impl<T: ImageStorage> tonic::server::UnaryService<super::Size>
-                    for GetImageSvc<T> {
+                    impl<T: ImageStorage> tonic::server::UnaryService<super::Size> for GetImageSvc<T> {
                         type Response = super::Image;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::Size>,
-                        ) -> Self::Future {
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::Size>) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 <T as ImageStorage>::get_image(&inner, request).await
@@ -166,15 +156,9 @@ pub mod image_storage_server {
                 "/imagestorage.ImageStorage/GetMessage" => {
                     #[allow(non_camel_case_types)]
                     struct GetMessageSvc<T: ImageStorage>(pub Arc<T>);
-                    impl<
-                        T: ImageStorage,
-                    > tonic::server::UnaryService<super::MessageIdentifier>
-                    for GetMessageSvc<T> {
+                    impl<T: ImageStorage> tonic::server::UnaryService<super::MessageIdentifier> for GetMessageSvc<T> {
                         type Response = super::Statement;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::MessageIdentifier>,
@@ -209,18 +193,14 @@ pub mod image_storage_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        Ok(
-                            http::Response::builder()
-                                .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
-                                .body(empty_body())
-                                .unwrap(),
-                        )
-                    })
-                }
+                _ => Box::pin(async move {
+                    Ok(http::Response::builder()
+                        .status(200)
+                        .header("grpc_services-status", "12")
+                        .header("content-type", "application/grpc_services")
+                        .body(empty_body())
+                        .unwrap())
+                }),
             }
         }
     }

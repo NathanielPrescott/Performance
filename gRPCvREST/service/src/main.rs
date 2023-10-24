@@ -1,19 +1,19 @@
-use actix_cors::Cors;
-use actix_web::web::Data;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix::{Actor, ActorContext, StreamHandler};
+use actix_web::{App, HttpServer, Responder};
 use image::DynamicImage;
 use jpeg_encoder::Encoder;
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::thread;
 use std::time::Instant;
 use tonic::transport::Server;
-use tonic::{IntoRequest, Request, Response, Status};
+use tonic::IntoRequest;
 
-use imagestorage::image_storage_server::{ImageStorage, ImageStorageServer};
-use imagestorage::{Image, MessageIdentifier, Statement};
+use crate::rest::{image_deliver, image_request};
 
-mod imagestorage;
+mod rest;
+mod streaming;
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Size {
@@ -24,47 +24,16 @@ enum Size {
 }
 
 #[derive(Serialize, Debug)]
+pub struct ImageStorageService {
+    images: &'static Images,
+}
+
+#[derive(Serialize, Debug)]
 struct Images {
     small: Vec<u8>,
     medium: Vec<u8>,
     large: Vec<u8>,
     original: Vec<u8>,
-}
-
-#[derive(Serialize, Debug)]
-pub struct ImageStorageService {
-    images: &'static Images,
-}
-
-#[tonic::async_trait]
-impl ImageStorage for ImageStorageService {
-    async fn get_image(
-        &self,
-        request: Request<imagestorage::Size>,
-    ) -> Result<Response<Image>, Status> {
-        let size = Images::from_string(request.into_inner().size.as_str())
-            .into_request()
-            .into_inner()
-            .map_err(|e| Status::invalid_argument(e))?;
-
-        Ok(Response::new(Image {
-            image: match size {
-                Size::Small => self.images.small.clone(),
-                Size::Medium => self.images.medium.clone(),
-                Size::Large => self.images.large.clone(),
-                Size::Original => self.images.original.clone(),
-            },
-        }))
-    }
-
-    async fn get_message(
-        &self,
-        _request: Request<MessageIdentifier>,
-    ) -> Result<Response<Statement>, Status> {
-        Ok(Response::new(Statement {
-            text: "Service is running and ready to deliver images".to_string(),
-        }))
-    }
 }
 
 impl Images {
@@ -139,37 +108,24 @@ impl Images {
     }
 }
 
-#[get("/image/request/{size}")]
-async fn image_request(size: web::Path<Size>, data: Data<&Images>) -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("image/jpeg")
-        .body(match size.into_inner() {
-            Size::Small => data.small.clone(),
-            Size::Medium => data.medium.clone(),
-            Size::Large => data.large.clone(),
-            Size::Original => data.original.clone(),
-        })
-}
-
-#[get("/message")]
-async fn image_deliver() -> impl Responder {
-    "Service is running and ready to deliver images"
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let domain = "localhost";
     let rest_port = 8080;
+    let rst2_port = 8081;
+    let webs_port = 8082;
     let grpc_port = 50051;
 
     println!("Starting servers...");
     println!("Listening on: http://{}:{}", domain, rest_port);
+    println!("Listening on: http://{}:{}", domain, rest_port);
+    println!("Listening on: http://{}:{}", domain, webs_port);
     println!("Listening on: http://{}:{}", domain, grpc_port);
 
     let images = Images::new();
 
     tokio::spawn(async move {
-        let service = ImageStorageServer::new(ImageStorageService { images });
+        let service = ImageStorageService::new(ImageStorageService { images });
         let address = "[::1]:".to_owned() + grpc_port.to_string().as_str();
 
         Server::builder()
@@ -180,16 +136,41 @@ async fn main() -> std::io::Result<()> {
             .unwrap();
     });
 
-    HttpServer::new(move || {
-        let cors = Cors::permissive();
+    let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
+    builder
+        .set_private_key_file("src/files/key.pem", SslFiletype::PEM)
+        .unwrap();
+    builder
+        .set_certificate_chain_file("src/files/cert.pem")
+        .unwrap();
 
-        App::new()
-            .wrap(cors)
-            .app_data(Data::new(images))
-            .service(image_request)
-            .service(image_deliver)
-    })
-    .bind((domain, rest_port))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().service(image_deliver).service(image_request))
+        .bind_openssl((domain, rst2_port), builder)?
+        .run()
+        .await
+
+    // HttpServer::new(move || {
+    //     let cors = Cors::permissive();
+    //
+    //     App::new()
+    //         .wrap(cors)
+    //         .app_data(Data::new(images))
+    //         .service(web::resource("/ws_message").to(ws_message))
+    // })
+    // .bind((domain, webs_port)).unwrap()
+    // .run()
+    // .await;
+
+    // HttpServer::new(move || {
+    //     let cors = Cors::permissive();
+    //
+    //     App::new()
+    //         .wrap(cors)
+    //         .app_data(Data::new(images))
+    //         .service(image_request)
+    //         .service(image_deliver)
+    // })
+    // .bind((domain, rest_port))?
+    // .run()
+    // .await
 }

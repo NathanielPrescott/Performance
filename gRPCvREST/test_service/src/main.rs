@@ -32,20 +32,6 @@ impl ImageResponse {
     }
 }
 
-#[tokio::main]
-async fn main() {
-    let mut client = ImageStorageClient::connect("http://localhost:50051")
-        .await
-        .unwrap();
-
-    retrieve_message(&mut client).await;
-
-    // retrieve_image(&mut client, "Small".to_string()).await;
-    // retrieve_image(&mut client, "Medium".to_string()).await;
-    retrieve_image(&mut client, "Large".to_string()).await;
-    // retrieve_image(&mut client, "Original".to_string()).await;
-}
-
 async fn retrieve_message(client: &mut ImageStorageClient<Channel>) {
     let message_request = MessageIdentifier { id: "".into() };
 
@@ -110,4 +96,22 @@ async fn retrieve_image(client: &mut ImageStorageClient<Channel>, size: String) 
     println!("Min Image time: {:?}", min_image_time);
     println!("Max Image time: {:?}", max_image_time);
     println!("Avg Image time: {:?}", total_image_time / 100);
+}
+
+#[tokio::main]
+async fn main() {
+    let mut client =
+
+    let mut client = ImageStorageClient::connect("http://localhost:50051")
+        .await
+        .unwrap();
+
+    retrieve_message(&mut client).await;
+
+    // retrieve_image(&mut client, "Small".to_string()).await;
+    // retrieve_image(&mut client, "Medium".to_string()).await;
+    retrieve_image(&mut client, "Large".to_string()).await;
+    // retrieve_image(&mut client, "Original".to_string()).await;
+
+    retrieve_http_message(http_client).await;
 }
