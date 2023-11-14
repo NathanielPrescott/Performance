@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 tonic = { version = "0.10.2", default-features = true, features = ["tls"] }
 prost = "0.12.1"
-tokio = {version = "1.32.0", features = ["full"]}
+tokio = {version = "1.34.0", features = ["full"]}
 
 [build-dependencies]
 tonic-build = "0.10.2"

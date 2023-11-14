@@ -61,9 +61,7 @@ pub async fn get_message() -> String {
     let mut client = build_client();
     let request = MessageIdentifier { id: "".into() };
 
-    let start = current_time();
     let response = client.get_message(request).await;
-    log(&format!("Message time: {}", current_time() - start));
 
     response.unwrap().into_inner().text
 }
@@ -75,13 +73,7 @@ pub async fn get_image(image_size: String) -> ImageResponse {
         size: image_size.clone(),
     };
 
-    let start = current_time();
     let response = client.get_image(request).await;
-    log(&format!(
-        "{} Image called in: {}ms",
-        image_size,
-        current_time() - start
-    ));
 
     ImageResponse {
         image: js_sys::Uint8Array::from(&response.unwrap().into_inner().image[..]),

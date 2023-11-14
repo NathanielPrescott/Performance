@@ -7,15 +7,15 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wasm-bindgen = "0.2.87"
-wasm-bindgen-futures = "0.4.37"
+wasm-bindgen = "0.2.88"
+wasm-bindgen-futures = "0.4.38"
 prost = "0.12.1"
 tonic = { version = "0.10.2", default-features = false, features = [
     "prost",
     "codegen",
 ] }
 tonic-web-wasm-client = "0.5.0"
-js-sys = "0.3.64"
+js-sys = "0.3.65"
 
 [build-dependencies]
 tonic-build = { version = "0.10.2", default-features = false, features = [
