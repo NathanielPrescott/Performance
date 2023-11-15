@@ -100,7 +100,10 @@ pub mod image_storage_client {
         pub async fn get_image(
             &mut self,
             request: impl tonic::IntoRequest<super::Size>,
-        ) -> std::result::Result<tonic::Response<super::Image>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::Image>>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -117,7 +120,7 @@ pub mod image_storage_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("imagestorage.ImageStorage", "GetImage"));
-            self.inner.unary(req, path, codec).await
+            self.inner.server_streaming(req, path, codec).await
         }
         /// Retrieves a message.
         pub async fn get_message(

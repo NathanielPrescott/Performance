@@ -5,8 +5,10 @@ use image::DynamicImage;
 use jpeg_encoder::Encoder;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::pin::Pin;
 use std::thread;
 use std::time::Instant;
+use tokio_stream::Stream;
 use tonic::transport::Server;
 use tonic::{IntoRequest, Request, Response, Status};
 
@@ -38,23 +40,29 @@ pub struct ImageStorageService {
 
 #[tonic::async_trait]
 impl ImageStorage for ImageStorageService {
+    type GetImageStream = Pin<Box<dyn Stream<Item = Result<Image, Status>> + Send + Sync>>;
+
     async fn get_image(
         &self,
         request: Request<imagestorage::Size>,
-    ) -> Result<Response<Image>, Status> {
+    ) -> Result<Response<Self::GetImageStream>, Status> {
         let size = Images::from_string(request.into_inner().size.as_str())
             .into_request()
             .into_inner()
             .map_err(|e| Status::invalid_argument(e))?;
 
-        Ok(Response::new(Image {
+        let output_stream = tokio_stream::iter(vec![Ok(Image {
             image: match size {
                 Size::Small => self.images.small.clone(),
                 Size::Medium => self.images.medium.clone(),
                 Size::Large => self.images.large.clone(),
                 Size::Original => self.images.original.clone(),
             },
-        }))
+        })]);
+
+        Ok(Response::new(
+            Box::pin(output_stream) as Self::GetImageStream
+        ))
     }
 
     async fn get_message(
@@ -163,13 +171,14 @@ async fn main() -> std::io::Result<()> {
     let grpc_port = 50051;
 
     println!("Starting servers...");
-    println!("Listening on: http://{}:{}", domain, rest_port);
-    println!("Listening on: http://{}:{}", domain, grpc_port);
+    println!("REST listening on: http://{}:{}", domain, rest_port);
+    println!("gRPC listening on: http://{}:{}", domain, grpc_port);
 
     let images = Images::new();
 
     tokio::spawn(async move {
-        let service = ImageStorageServer::new(ImageStorageService { images });
+        let service = ImageStorageServer::new(ImageStorageService { images })
+            .max_decoding_message_size(1024 * 1024 * 50);
         let address = "[::1]:".to_owned() + grpc_port.to_string().as_str();
 
         Server::builder()

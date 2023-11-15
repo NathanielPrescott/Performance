@@ -10,7 +10,8 @@ WebAssembly project using gRPC.  This would give increased performance and secur
 Currently, the service project has a text string and an image that can be requested.  There is only one implementation of
 the text string and the image has 4 implementations (Small, Medium, Large, and Original).  The image is provided under the 
 Service/src/files directory.  The Client project runs through the REST services first and then the gRPC WASM services.
-I have disabled the call to the Original image because it takes too long and errors out.
+Be mindful that due to the exponential increase in time for the conversion of data between the WASM and JS layers, that
+the Original Image calls will take a long time to complete.
 
 ## Learning
 Some things I found out during my exploration of this idea:
@@ -44,6 +45,7 @@ This is a Rust project that handles gRPC calls to verify the performance of what
 ## Performance
 Currently, due to the data conversion that needs to occur between WebAssembly and the JS layer, the performance of gRPC with
 WASM is exponentially slower which makes sense now that I have learned the limits of WebAssembly's data transport layer.
-The performance using the test_service project makes more sense using gRPC directly between two services though it is 
-slower than I expect it should be.
+The performance using the test_service project makes more sense using gRPC directly between two services, especially after I 
+added streaming to the gRPC proto.
+
 I'll post images of my performance tests here later.

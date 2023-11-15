@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await getSmallImageGRPC(); // gRPC call to get Small Image
         await getMediumImageGRPC(); // gRPC call to get Medium Image
         await getLargeImageGRPC(); // gRPC call to get Large Image
-        // await getOriginalImageGRPC(); // gRPC call to get Original Image
+        await getOriginalImageGRPC(); // gRPC call to get Original Image
 
         console.log("...tests completed!");
     });

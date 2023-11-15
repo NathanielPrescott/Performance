@@ -4,7 +4,7 @@ package imagestorage;
 
 service ImageStorage {
   // Retrieves a image by its size.
-  rpc GetImage(Size) returns (Image);
+  rpc GetImage(Size) returns (stream Image);
 
   // Retrieves a message.
   rpc GetMessage(MessageIdentifier) returns (Statement);

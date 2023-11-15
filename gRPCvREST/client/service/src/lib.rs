@@ -1,5 +1,6 @@
 use crate::imagestorage::{MessageIdentifier, Size};
 use imagestorage::image_storage_client::ImageStorageClient;
+use tonic::codegen::tokio_stream::StreamExt;
 use tonic_web_wasm_client::Client;
 use wasm_bindgen::prelude::*;
 
@@ -53,7 +54,7 @@ fn build_client() -> ImageStorageClient<Client> {
     let base_url = "http://localhost:50051".to_string();
     let wasm_client = Client::new(base_url);
 
-    ImageStorageClient::new(wasm_client)
+    ImageStorageClient::new(wasm_client).max_decoding_message_size(1024 * 1024 * 50)
 }
 
 #[wasm_bindgen]
@@ -73,9 +74,14 @@ pub async fn get_image(image_size: String) -> ImageResponse {
         size: image_size.clone(),
     };
 
-    let response = client.get_image(request).await;
+    let mut image_stream = client.get_image(request).await.unwrap().into_inner();
 
+    let mut image_data = Vec::new();
+    while let Some(image_response) = image_stream.next().await {
+        let image_chunk = image_response.unwrap().image;
+        image_data.extend_from_slice(&image_chunk);
+    }
     ImageResponse {
-        image: js_sys::Uint8Array::from(&response.unwrap().into_inner().image[..]),
+        image: js_sys::Uint8Array::from(&image_data[..]),
     }
 }

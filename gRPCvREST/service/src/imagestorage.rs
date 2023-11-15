@@ -29,11 +29,17 @@ pub mod image_storage_server {
     /// Generated trait containing gRPC methods that should be implemented for use with ImageStorageServer.
     #[async_trait]
     pub trait ImageStorage: Send + Sync + 'static {
+        /// Server streaming response type for the GetImage method.
+        type GetImageStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::Image, tonic::Status>,
+            >
+            + Send
+            + 'static;
         /// Retrieves a image by its size.
         async fn get_image(
             &self,
             request: tonic::Request<super::Size>,
-        ) -> std::result::Result<tonic::Response<super::Image>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<Self::GetImageStream>, tonic::Status>;
         /// Retrieves a message.
         async fn get_message(
             &self,
@@ -122,11 +128,14 @@ pub mod image_storage_server {
                 "/imagestorage.ImageStorage/GetImage" => {
                     #[allow(non_camel_case_types)]
                     struct GetImageSvc<T: ImageStorage>(pub Arc<T>);
-                    impl<T: ImageStorage> tonic::server::UnaryService<super::Size>
+                    impl<
+                        T: ImageStorage,
+                    > tonic::server::ServerStreamingService<super::Size>
                     for GetImageSvc<T> {
                         type Response = super::Image;
+                        type ResponseStream = T::GetImageStream;
                         type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
+                            tonic::Response<Self::ResponseStream>,
                             tonic::Status,
                         >;
                         fn call(
@@ -158,7 +167,7 @@ pub mod image_storage_server {
                                 max_decoding_message_size,
                                 max_encoding_message_size,
                             );
-                        let res = grpc.unary(method, req).await;
+                        let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
